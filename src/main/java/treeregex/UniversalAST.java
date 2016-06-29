@@ -143,7 +143,8 @@ public class UniversalAST {
                 Pattern r = (Pattern)o;
                 Matcher matcher = r.matcher(str);
                 if (matcher.matches()) {
-                    for (int j = 1; j < matcher.groupCount(); j++) {
+                    int gc = matcher.groupCount()+1;
+                    for (int j = 1; j < gc; j++) {
                         ret.push(matcher.group(j));
                     }
                     k++;
