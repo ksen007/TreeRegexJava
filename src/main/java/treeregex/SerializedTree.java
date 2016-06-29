@@ -11,12 +11,12 @@ import java.util.regex.Pattern;
  * Date: 6/28/16
  * Time: 8:15 AM
  */
-public class UniversalAST {
+public class SerializedTree {
     public Object[] children;
     private ObjectArrayList tmpChildren;
 
 
-    public UniversalAST() {
+    public SerializedTree() {
         tmpChildren = new ObjectArrayList<>();
     }
 
@@ -31,8 +31,8 @@ public class UniversalAST {
         finalizeNode();
         for (int i = 0; i < this.children.length; i++) {
             Object child = this.children[i];
-            if (child instanceof UniversalAST) {
-                ((UniversalAST) child).finalizeAST();
+            if (child instanceof SerializedTree) {
+                ((SerializedTree) child).finalizeAST();
             }
         }
     }
@@ -44,10 +44,10 @@ public class UniversalAST {
         StringBuilder ret = new StringBuilder();
         for (int i = 0; i < this.children.length; i++) {
             Object child = this.children[i];
-            if (child instanceof UniversalAST) {
-                ret.append(UniversalAST.LBS);
+            if (child instanceof SerializedTree) {
+                ret.append(SerializedTree.LBS);
                 ret.append(child.toString());
-                ret.append(UniversalAST.RBS);
+                ret.append(SerializedTree.RBS);
             } else {
                 ret.append(universalASTEscape(child + ""));
             }
@@ -61,8 +61,8 @@ public class UniversalAST {
         StringBuilder ret = new StringBuilder();
         for (int i = 0; i < this.children.length; i++) {
             Object child = this.children[i];
-            if (child instanceof UniversalAST) {
-                ret.append(((UniversalAST) child).toSourceString());
+            if (child instanceof SerializedTree) {
+                ret.append(((SerializedTree) child).toSourceString());
             } else {
                 ret.append(child + "");
             }
@@ -76,8 +76,8 @@ public class UniversalAST {
         StringBuilder ret = new StringBuilder();
         for (int i = 0; i < this.children.length; i++) {
             Object child = this.children[i];
-            if (child instanceof UniversalAST) {
-                String tmp = ((UniversalAST) child).toSourceStringClipped();
+            if (child instanceof SerializedTree) {
+                String tmp = ((SerializedTree) child).toSourceStringClipped();
                 ret.append(tmp.substring(tmp.indexOf(' ') + 1));
             } else {
                 ret.append((child + ""));
@@ -95,9 +95,9 @@ public class UniversalAST {
     ;
 
 
-    public boolean matchContext(TreeRegexAST patternStar, ObjectArrayList ret, UniversalAST top, UniversalAST parent, int index) {
+    public boolean matchContext(TreeRegexAST patternStar, ObjectArrayList ret, SerializedTree top, SerializedTree parent, int index) {
         int oldlen = ret.size();
-        ret.push(new UniversalASTWithHole(top, parent, index));
+        ret.push(new SerializedTreeWithHole(top, parent, index));
         boolean ret2 = this.matchExact(patternStar, ret);
         if (ret2) {
             return true;
@@ -105,8 +105,8 @@ public class UniversalAST {
         ret.removeElements(oldlen, ret.size());
 
         for (int i = 0; i < this.children.length; i++) {
-            if (this.children[i] instanceof UniversalAST) {
-                ret2 = ((UniversalAST) this.children[i]).matchContext(patternStar, ret, top, this, i);
+            if (this.children[i] instanceof SerializedTree) {
+                ret2 = ((SerializedTree) this.children[i]).matchContext(patternStar, ret, top, this, i);
                 if (ret2) {
                     return true;
                 }
@@ -143,7 +143,7 @@ public class UniversalAST {
             Object o = pattern.children[i];
             if (o instanceof Pattern) {
                 String str;
-                if (this.children[k] instanceof UniversalAST || k >= this.children.length) {
+                if (this.children[k] instanceof SerializedTree || k >= this.children.length) {
                     k--;
                     str = "";
                 } else {
@@ -166,8 +166,8 @@ public class UniversalAST {
                     k = this.matchStar(t, ret, k);
                 } else if (t.isAlternation) {
                     k = this.matchAlternation(t, ret, k);
-                } else if (this.children[k] instanceof UniversalAST) {
-                    UniversalAST ast = (UniversalAST) this.children[k];
+                } else if (this.children[k] instanceof SerializedTree) {
+                    SerializedTree ast = (SerializedTree) this.children[k];
                     if (t.isAt) {
                         ret.push(ast);
                         k++;
@@ -244,7 +244,7 @@ public class UniversalAST {
                             throw new Error("Capture at index " + (number.toString() + 1) + " not found in " + subs);
                         } else {
                             Object sub = subs.get(num);
-                            if (sub instanceof UniversalAST || sub instanceof UniversalASTWithHole) {
+                            if (sub instanceof SerializedTree || sub instanceof SerializedTreeWithHole) {
                                 if (sb.length() > 0) {
                                     stack.push(sb.toString());
                                     sb.delete(0, sb.length());
@@ -273,25 +273,25 @@ public class UniversalAST {
     }
 
 
-    public UniversalAST replace(ObjectArrayList subs) {
+    public SerializedTree replace(ObjectArrayList subs) {
         ObjectArrayList stack = new ObjectArrayList();
         int count = 0;
         for (int i = 0; i < this.children.length; i++) {
             Object o = this.children[i];
-            if (o instanceof UniversalAST) {
-                stack.push(((UniversalAST)o).replace(subs));
+            if (o instanceof SerializedTree) {
+                stack.push(((SerializedTree)o).replace(subs));
             } else {
                 this.replaceInString((String)o, subs, stack);
             }
         }
         for (int j = stack.size() - 1; j >= 0; j--) {
             Object stackj = stack.get(j);
-            if (stackj instanceof UniversalASTWithHole) {
-                UniversalASTWithHole hole = (UniversalASTWithHole)stackj;
+            if (stackj instanceof SerializedTreeWithHole) {
+                SerializedTreeWithHole hole = (SerializedTreeWithHole)stackj;
                 if (j == stack.size() - 1) {
                     throw new Error("No more serialized tree left to fill a hole.");
                 }
-                if (!(stack.get(j+1) instanceof UniversalAST)) {
+                if (!(stack.get(j+1) instanceof SerializedTree)) {
                     throw new Error("A hole cannot be filled with " + stack.get(j + 1));
                 }
                 if (hole.parent != null) {
@@ -313,7 +313,7 @@ public class UniversalAST {
                 i++;
             }
         }
-        UniversalAST tmp = new UniversalAST();
+        SerializedTree tmp = new SerializedTree();
         tmp.children = stack2;
         tmp.tmpChildren = null;
         return tmp;
@@ -346,55 +346,55 @@ public class UniversalAST {
     }
 
     static {
-        UniversalAST.LBS = "(%";
-        UniversalAST.RBS = "%)";
-        UniversalAST.FSS = '/';
-        UniversalAST.LB = cntr;
+        SerializedTree.LBS = "(%";
+        SerializedTree.RBS = "%)";
+        SerializedTree.FSS = '/';
+        SerializedTree.LB = cntr;
         --cntr;
-        UniversalAST.RB = --cntr;
+        SerializedTree.RB = --cntr;
         --cntr;
-        UniversalAST.FS = --cntr;
+        SerializedTree.FS = --cntr;
         --cntr;
-        UniversalAST.sTreeScanner = new StringTokenScanner(UniversalAST.FSS);
-        UniversalAST.sTreeScanner.addString(UniversalAST.LB, UniversalAST.LBS, null);
-        UniversalAST.sTreeScanner.addString(UniversalAST.RB, UniversalAST.RBS, null);
-        universalASTEscaper.addString(UniversalAST.LB, UniversalAST.LBS, injectEscapeChar(UniversalAST.FSS, UniversalAST.LBS));
-        universalASTEscaper.addString(UniversalAST.RB, UniversalAST.RBS, injectEscapeChar(UniversalAST.FSS, UniversalAST.RBS));
-        universalASTEscaper.addString(UniversalAST.FS, "" + UniversalAST.FSS, injectEscapeChar(UniversalAST.FSS, "" + UniversalAST.FSS));
+        SerializedTree.sTreeScanner = new StringTokenScanner(SerializedTree.FSS);
+        SerializedTree.sTreeScanner.addString(SerializedTree.LB, SerializedTree.LBS, null);
+        SerializedTree.sTreeScanner.addString(SerializedTree.RB, SerializedTree.RBS, null);
+        universalASTEscaper.addString(SerializedTree.LB, SerializedTree.LBS, injectEscapeChar(SerializedTree.FSS, SerializedTree.LBS));
+        universalASTEscaper.addString(SerializedTree.RB, SerializedTree.RBS, injectEscapeChar(SerializedTree.FSS, SerializedTree.RBS));
+        universalASTEscaper.addString(SerializedTree.FS, "" + SerializedTree.FSS, injectEscapeChar(SerializedTree.FSS, "" + SerializedTree.FSS));
     }
 
-    private static void addString(UniversalAST current, StringBuilder sb) {
+    private static void addString(SerializedTree current, StringBuilder sb) {
         if (sb.length() > 0) {
             current.addChild(sb.toString());
             sb.delete(0, sb.length());
         }
     }
 
-    public static UniversalAST parseSTree(String source) {
-        UniversalAST current;
-        UniversalAST root = current = new UniversalAST();
+    public static SerializedTree parseSTree(String source) {
+        SerializedTree current;
+        SerializedTree root = current = new SerializedTree();
         StringBuilder sb = new StringBuilder();
-        Stack<UniversalAST> stack = new ObjectArrayList<>();
+        Stack<SerializedTree> stack = new ObjectArrayList<>();
 
-        UniversalAST.sTreeScanner.setStream(source);
-        int token = UniversalAST.sTreeScanner.nextToken();
+        SerializedTree.sTreeScanner.setStream(source);
+        int token = SerializedTree.sTreeScanner.nextToken();
         while (token != StringTokenScanner.EOF) {
-            if (token == UniversalAST.LB) {
+            if (token == SerializedTree.LB) {
                 addString(current, sb);
                 stack.push(current);
-                current = new UniversalAST();
-            } else if (token == UniversalAST.RB) {
+                current = new SerializedTree();
+            } else if (token == SerializedTree.RB) {
                 if (stack.isEmpty()) {
-                    throw new Error("Unbalanced %) in " + UniversalAST.sTreeScanner.scannedPrefix());
+                    throw new Error("Unbalanced %) in " + SerializedTree.sTreeScanner.scannedPrefix());
                 }
                 addString(current, sb);
-                UniversalAST prev = current;
+                SerializedTree prev = current;
                 current = stack.pop();
                 current.addChild(prev);
             } else {
-                sb.append(UniversalAST.sTreeScanner.lexeme);
+                sb.append(SerializedTree.sTreeScanner.lexeme);
             }
-            token = UniversalAST.sTreeScanner.nextToken();
+            token = SerializedTree.sTreeScanner.nextToken();
         }
         addString(current, sb);
         if (root != current) {

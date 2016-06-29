@@ -9,7 +9,7 @@ import it.unimi.dsi.fastutil.objects.ObjectArrayList;
  */
 public class TreeRegexLib {
     private TreeRegexAST treeRegexAST;
-    private UniversalAST mod;
+    private SerializedTree mod;
 
     public TreeRegexLib(String pattern, boolean isRegex) {
         this.treeRegexAST = TreeRegexAST.parseTreeRegex(pattern, isRegex);
@@ -17,18 +17,18 @@ public class TreeRegexLib {
 
     public TreeRegexLib(String pattern, boolean isRegex, String replacement) {
         this.treeRegexAST = TreeRegexAST.parseTreeRegex(pattern, isRegex);
-        if (replacement != null) this.mod = UniversalAST.parseSTree(replacement);
+        if (replacement != null) this.mod = SerializedTree.parseSTree(replacement);
     }
 
     public ObjectArrayList matches(String source) {
-        UniversalAST stree = UniversalAST.parseSTree(source);
+        SerializedTree stree = SerializedTree.parseSTree(source);
         return stree.matches(this.treeRegexAST);
     }
 
-    public UniversalAST replace(String source) {
-        UniversalAST stree = UniversalAST.parseSTree(source);
+    public SerializedTree replace(String source) {
+        SerializedTree stree = SerializedTree.parseSTree(source);
         ObjectArrayList matches = stree.matches(this.treeRegexAST);
-        UniversalAST mod = this.mod.replace(matches);
+        SerializedTree mod = this.mod.replace(matches);
         return mod;
     }
 }

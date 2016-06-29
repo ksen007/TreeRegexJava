@@ -5,12 +5,12 @@ package treeregex;
  * Date: 6/28/16
  * Time: 8:13 AM
  */
-public class UniversalASTWithHole {
-    UniversalAST top;
-    UniversalAST parent;
+public class SerializedTreeWithHole {
+    SerializedTree top;
+    SerializedTree parent;
     int i;
 
-    public UniversalASTWithHole(UniversalAST top, UniversalAST parent, int i) {
+    public SerializedTreeWithHole(SerializedTree top, SerializedTree parent, int i) {
         this.parent = parent;
         this.top = top;
         this.i = i;

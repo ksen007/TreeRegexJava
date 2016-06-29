@@ -10,7 +10,7 @@ import java.util.regex.Pattern;
  * Date: 6/28/16
  * Time: 10:02 AM
  */
-public class TreeRegexAST extends UniversalAST {
+public class TreeRegexAST extends SerializedTree {
     public boolean isStar;
     public boolean isAlternation;
     public boolean isAt;
@@ -51,9 +51,9 @@ public class TreeRegexAST extends UniversalAST {
         TreeRegexAST.LAS = "(|";
         TreeRegexAST.RAS = "|)";
         TreeRegexAST.ATS = "@";
-        TreeRegexAST.treeRegexScanner = new StringTokenScanner(UniversalAST.FSS);
-        TreeRegexAST.treeRegexScanner.addString(UniversalAST.LB, UniversalAST.LBS, null);
-        TreeRegexAST.treeRegexScanner.addString(UniversalAST.RB, UniversalAST.RBS, null);
+        TreeRegexAST.treeRegexScanner = new StringTokenScanner(SerializedTree.FSS);
+        TreeRegexAST.treeRegexScanner.addString(SerializedTree.LB, SerializedTree.LBS, null);
+        TreeRegexAST.treeRegexScanner.addString(SerializedTree.RB, SerializedTree.RBS, null);
         TreeRegexAST.treeRegexScanner.addString(TreeRegexAST.LT, TreeRegexAST.LTS, null);
         TreeRegexAST.treeRegexScanner.addString(TreeRegexAST.RT, TreeRegexAST.RTS, null);
         TreeRegexAST.treeRegexScanner.addString(TreeRegexAST.LL, TreeRegexAST.LLS, null);
@@ -64,16 +64,16 @@ public class TreeRegexAST extends UniversalAST {
         TreeRegexAST.ATNode = new TreeRegexAST(false, true, false, false);
 
         treeRegexASTEscaper = new StringTokenScanner();
-        treeRegexASTEscaper.addString(UniversalAST.LB, UniversalAST.LBS, injectEscapeChar(UniversalAST.FSS,UniversalAST.LBS));
-        treeRegexASTEscaper.addString(UniversalAST.RB, UniversalAST.RBS, injectEscapeChar(UniversalAST.FSS,UniversalAST.RBS));
-        treeRegexASTEscaper.addString(UniversalAST.FS, "" + UniversalAST.FSS, injectEscapeChar(UniversalAST.FSS, "" + UniversalAST.FSS));
-        treeRegexASTEscaper.addString(TreeRegexAST.LT, TreeRegexAST.LTS, injectEscapeChar(UniversalAST.FSS, TreeRegexAST.LTS));
-        treeRegexASTEscaper.addString(TreeRegexAST.RT, TreeRegexAST.RTS, injectEscapeChar(UniversalAST.FSS, TreeRegexAST.RTS));
-        treeRegexASTEscaper.addString(TreeRegexAST.LL, TreeRegexAST.LLS, injectEscapeChar(UniversalAST.FSS, TreeRegexAST.LLS));
-        treeRegexASTEscaper.addString(TreeRegexAST.RL, TreeRegexAST.RLS, injectEscapeChar(UniversalAST.FSS, TreeRegexAST.RLS));
-        treeRegexASTEscaper.addString(TreeRegexAST.LA, TreeRegexAST.LAS, injectEscapeChar(UniversalAST.FSS, TreeRegexAST.LAS));
-        treeRegexASTEscaper.addString(TreeRegexAST.RA, TreeRegexAST.RAS, injectEscapeChar(UniversalAST.FSS, TreeRegexAST.RAS));
-        treeRegexASTEscaper.addString(TreeRegexAST.AT, TreeRegexAST.ATS, injectEscapeChar(UniversalAST.FSS, TreeRegexAST.ATS));
+        treeRegexASTEscaper.addString(SerializedTree.LB, SerializedTree.LBS, injectEscapeChar(SerializedTree.FSS, SerializedTree.LBS));
+        treeRegexASTEscaper.addString(SerializedTree.RB, SerializedTree.RBS, injectEscapeChar(SerializedTree.FSS, SerializedTree.RBS));
+        treeRegexASTEscaper.addString(SerializedTree.FS, "" + SerializedTree.FSS, injectEscapeChar(SerializedTree.FSS, "" + SerializedTree.FSS));
+        treeRegexASTEscaper.addString(TreeRegexAST.LT, TreeRegexAST.LTS, injectEscapeChar(SerializedTree.FSS, TreeRegexAST.LTS));
+        treeRegexASTEscaper.addString(TreeRegexAST.RT, TreeRegexAST.RTS, injectEscapeChar(SerializedTree.FSS, TreeRegexAST.RTS));
+        treeRegexASTEscaper.addString(TreeRegexAST.LL, TreeRegexAST.LLS, injectEscapeChar(SerializedTree.FSS, TreeRegexAST.LLS));
+        treeRegexASTEscaper.addString(TreeRegexAST.RL, TreeRegexAST.RLS, injectEscapeChar(SerializedTree.FSS, TreeRegexAST.RLS));
+        treeRegexASTEscaper.addString(TreeRegexAST.LA, TreeRegexAST.LAS, injectEscapeChar(SerializedTree.FSS, TreeRegexAST.LAS));
+        treeRegexASTEscaper.addString(TreeRegexAST.RA, TreeRegexAST.RAS, injectEscapeChar(SerializedTree.FSS, TreeRegexAST.RAS));
+        treeRegexASTEscaper.addString(TreeRegexAST.AT, TreeRegexAST.ATS, injectEscapeChar(SerializedTree.FSS, TreeRegexAST.ATS));
 
     }
 
@@ -95,13 +95,13 @@ public class TreeRegexAST extends UniversalAST {
         TreeRegexAST.treeRegexScanner.setStream(source);
         int token = TreeRegexAST.treeRegexScanner.nextToken();
         while (token != StringTokenScanner.EOF) {
-            if (token == UniversalAST.LB) {
+            if (token == SerializedTree.LB) {
                 pushString(current, sb, isRegex);
                 stack.push(current);
                 current = new TreeRegexAST(false, false, false, false);
-            } else if (token == UniversalAST.RB) {
+            } else if (token == SerializedTree.RB) {
                 if (stack.isEmpty() || current.isContext) {
-                    throw new Error("Unbalanced " + UniversalAST.RBS + " after " + TreeRegexAST.treeRegexScanner.scannedPrefix());
+                    throw new Error("Unbalanced " + SerializedTree.RBS + " after " + TreeRegexAST.treeRegexScanner.scannedPrefix());
                 }
                 pushString(current, sb, isRegex);
                 prev = current;
@@ -164,9 +164,9 @@ public class TreeRegexAST extends UniversalAST {
         for (int i = 0; i < this.children.length; i++) {
             Object child = this.children[i];
             if (child instanceof TreeRegexAST && !((TreeRegexAST) child).isAt) {
-                ret.append(((TreeRegexAST) child).isContext ? TreeRegexAST.LTS : UniversalAST.LBS);
+                ret.append(((TreeRegexAST) child).isContext ? TreeRegexAST.LTS : SerializedTree.LBS);
                 ret.append(child.toString());
-                ret.append(((TreeRegexAST) child).isContext ? TreeRegexAST.RTS : UniversalAST.RBS);
+                ret.append(((TreeRegexAST) child).isContext ? TreeRegexAST.RTS : SerializedTree.RBS);
             } else if (child instanceof TreeRegexAST && ((TreeRegexAST) child).isAt) {
                 ret.append("@");
             } else {
