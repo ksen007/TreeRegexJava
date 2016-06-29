@@ -16,7 +16,6 @@ public class UniversalAST {
     private ObjectArrayList tmpChildren;
 
 
-
     public UniversalAST() {
         tmpChildren = new ObjectArrayList<>();
     }
@@ -33,10 +32,12 @@ public class UniversalAST {
         for (int i = 0; i < this.children.length; i++) {
             Object child = this.children[i];
             if (child instanceof UniversalAST) {
-                ((UniversalAST)child).finalizeAST();
+                ((UniversalAST) child).finalizeAST();
             }
         }
-    };
+    }
+
+    ;
 
 
     public String toString() {
@@ -52,38 +53,46 @@ public class UniversalAST {
             }
         }
         return ret.toString();
-    };
+    }
+
+    ;
 
     public String toSourceString() {
         StringBuilder ret = new StringBuilder();
         for (int i = 0; i < this.children.length; i++) {
             Object child = this.children[i];
             if (child instanceof UniversalAST) {
-                ret.append(((UniversalAST)child).toSourceString());
+                ret.append(((UniversalAST) child).toSourceString());
             } else {
                 ret.append(child + "");
             }
         }
         return ret.toString();
-    };
+    }
+
+    ;
 
     public String toSourceStringClipped() {
         StringBuilder ret = new StringBuilder();
         for (int i = 0; i < this.children.length; i++) {
             Object child = this.children[i];
             if (child instanceof UniversalAST) {
-                String tmp = ((UniversalAST)child).toSourceStringClipped();
+                String tmp = ((UniversalAST) child).toSourceStringClipped();
                 ret.append(tmp.substring(tmp.indexOf(' ') + 1));
             } else {
                 ret.append((child + ""));
             }
         }
         return ret.toString();
-    };
+    }
+
+    ;
 
     public void addChild(Object child) {
         this.tmpChildren.push(child);
-    };
+    }
+
+    ;
 
 
     public boolean matchContext(TRegexAST patternStar, ObjectArrayList ret, UniversalAST top, UniversalAST parent, int index) {
@@ -97,7 +106,7 @@ public class UniversalAST {
 
         for (int i = 0; i < this.children.length; i++) {
             if (this.children[i] instanceof UniversalAST) {
-                ret2 = ((UniversalAST)this.children[i]).matchContext(patternStar, ret, top, this, i);
+                ret2 = ((UniversalAST) this.children[i]).matchContext(patternStar, ret, top, this, i);
                 if (ret2) {
                     return true;
                 }
@@ -119,7 +128,7 @@ public class UniversalAST {
     public int matchAlternation(TRegexAST pattern, ObjectArrayList ret, int k) {
         for (int i = 0; i < pattern.children.length; i++) {
             Object o = pattern.children[i];
-            int ktmp = this.matchList((TRegexAST)o, ret, k); // @todo type cast could fail
+            int ktmp = this.matchList((TRegexAST) o, ret, k); // @todo type cast could fail
             if (ktmp != -1) {
                 return ktmp;
             }
@@ -140,10 +149,10 @@ public class UniversalAST {
                 } else {
                     str = this.children[k] + "";
                 }
-                Pattern r = (Pattern)o;
+                Pattern r = (Pattern) o;
                 Matcher matcher = r.matcher(str);
                 if (matcher.matches()) {
-                    int gc = matcher.groupCount()+1;
+                    int gc = matcher.groupCount() + 1;
                     for (int j = 1; j < gc; j++) {
                         ret.push(matcher.group(j));
                     }
@@ -152,7 +161,7 @@ public class UniversalAST {
                     k = -1;
                 }
             } else if (o instanceof TRegexAST) {
-                TRegexAST t = (TRegexAST)o;
+                TRegexAST t = (TRegexAST) o;
                 if (t.isStar) {
                     k = this.matchStar(t, ret, k);
                 } else if (t.isAlternation) {
@@ -164,10 +173,12 @@ public class UniversalAST {
                         k++;
                     } else if (t.isContext) {
                         boolean res = ast.matchContext(t, ret, ast, null, 0);
-                        if (res) k++; else k = -1;
+                        if (res) k++;
+                        else k = -1;
                     } else {
-                        boolean res  = ast.matchExact(t, ret);
-                        if (res) k++; else k = -1;
+                        boolean res = ast.matchExact(t, ret);
+                        if (res) k++;
+                        else k = -1;
                     }
                 } else {
                     k = -1;
@@ -205,40 +216,43 @@ public class UniversalAST {
     }
 
 
-    /*
-    UniversalAST.prototype.replaceInString = function (template, subs, stack) {
-        var sb = "";
-        var len = template.length;
-        var prev = 0, c;
-        for (var i = 0; i < len; i++) {
+    public void replaceInString(String template, ObjectArrayList subs, ObjectArrayList stack) {
+        StringBuilder sb = new StringBuilder();
+        int len = template.length();
+        int prev = 0;
+        char c;
+        for (int i = 0; i < len; i++) {
             c = template.charAt(i);
             if (prev == '$') {
                 if (c == '$') {
-                    sb = sb + c;
+                    sb.append(c);
                     prev = 0;
                 } else {
-                    var number = "";
+                    StringBuilder number = new StringBuilder();
                     while (c >= '0' && c <= '9') {
-                        number += c;
+                        number.append(c);
                         i++;
                         if (i < len)
                             c = template.charAt(i);
                         else
-                            c = String.fromCharCode(0);
+                            c = 0;
                     }
                     i--;
-                    if (number.length > 0) {
-                        number = number | 0;
-                        if (subs[number] instanceof UniversalAST || subs[number] instanceof UniversalASTWithHole) {
-                            if (sb.length > 0) {
-                                stack.push(sb);
-                                sb = "";
-                            }
-                            stack.push(subs[number]);
-                        } else if (subs[number] !== undefined) {
-                            sb = sb + subs[number];
+                    if (number.length() > 0) {
+                        int num = Integer.parseInt(number.toString());
+                        if (num >= subs.size() || num < 0) {
+                            throw new Error("Capture at index " + (number.toString() + 1) + " not found in " + subs);
                         } else {
-                            throw new Error("Capture at index " + (number + 1) + " not found in " + subs);
+                            Object sub = subs.get(num);
+                            if (sub instanceof UniversalAST || sub instanceof UniversalASTWithHole) {
+                                if (sb.length() > 0) {
+                                    stack.push(sb.toString());
+                                    sb.delete(0, sb.length());
+                                }
+                                stack.push(sub);
+                            } else {
+                                sb.append(sub);
+                            }
                         }
                         prev = 0;
                     } else {
@@ -248,69 +262,70 @@ public class UniversalAST {
             } else if (c == '$') {
                 prev = c;
             } else {
-                sb = sb + c;
+                sb.append(c);
                 prev = 0;
             }
         }
-        if (sb.length > 0) {
-            stack.push(sb);
-            sb = "";
+        if (sb.length() > 0) {
+            stack.push(sb.toString());
+            sb.delete(0, sb.length());
         }
+    }
 
-    };
 
-
-    UniversalAST.prototype.replace = function (subs) {
-        var stack = [];
-        var count = 0;
-        for (var i = 0; i < this.children.length; i++) {
-            var o = this.children[i];
+    public UniversalAST replace(ObjectArrayList subs) {
+        ObjectArrayList stack = new ObjectArrayList();
+        int count = 0;
+        for (int i = 0; i < this.children.length; i++) {
+            Object o = this.children[i];
             if (o instanceof UniversalAST) {
-                stack.push(o.replace(subs));
+                stack.push(((UniversalAST)o).replace(subs));
             } else {
-                this.replaceInString(o, subs, stack);
+                this.replaceInString((String)o, subs, stack);
             }
         }
-        for (var j = stack.length - 1; j >= 0; j--) {
-            if (stack[j] instanceof UniversalASTWithHole) {
-                var hole = stack[j];
-                if (j === stack.length - 1) {
+        for (int j = stack.size() - 1; j >= 0; j--) {
+            Object stackj = stack.get(j);
+            if (stackj instanceof UniversalASTWithHole) {
+                UniversalASTWithHole hole = (UniversalASTWithHole)stackj;
+                if (j == stack.size() - 1) {
                     throw new Error("No more serialized tree left to fill a hole.");
                 }
-                if (!(stack[j + 1] instanceof UniversalAST)) {
-                    throw new Error("A hole cannot be filled with " + stack[j + 1]);
+                if (!(stack.get(j+1) instanceof UniversalAST)) {
+                    throw new Error("A hole cannot be filled with " + stack.get(j + 1));
                 }
-                if (hole.parent) {
-                    stack[j] = hole.top;
-                    hole.parent.children[hole.i] = stack[j + 1];
+                if (hole.parent != null) {
+                    stack.set(j,hole.top);
+                    hole.parent.children[hole.i] = stack.get(j+1);
                 } else {
-                    stack[j] = stack[j + 1];
+                    stack.set(j, stack.get(j + 1));
                 }
-                stack[j + 1] = undefined;
+                stack.set(j + 1, null);
             } else {
                 count++;
             }
         }
-        var stack2 = new Array(count);
-        i = 0;
-        for (j = 0; j < stack.length; j++) {
-            if (stack[j] !== undefined) {
-                stack2[i] = stack[j];
+        Object stack2[] = new Object[count];
+        int i = 0;
+        for (int j = 0; j < stack.size(); j++) {
+            if (stack.get(j) != null) {
+                stack2[i] = stack.get(j);
                 i++;
             }
         }
-        var tmp = new UniversalAST();
+        UniversalAST tmp = new UniversalAST();
         tmp.children = stack2;
+        tmp.tmpChildren = null;
         return tmp;
-    };
+    }
 
-*/
     public static int LB, RB, FS;
     public static String LBS, RBS;
     public static char FSS;
     public static StringTokenScanner sTreeScanner;
     public static int cntr = -2;
     public static StringTokenScanner universalASTEscaper = new StringTokenScanner();
+
     private static String universalASTEscape(String str) {
         universalASTEscaper.setStream(str);
         int token = universalASTEscaper.nextToken();
@@ -324,7 +339,7 @@ public class UniversalAST {
 
     public static String injectEscapeChar(char escapeChar, String source) {
         StringBuilder sb = new StringBuilder();
-        for(int i=0; i<source.length(); i++) {
+        for (int i = 0; i < source.length(); i++) {
             sb.append(escapeChar).append(source.charAt(i));
         }
         return sb.toString();
@@ -343,9 +358,9 @@ public class UniversalAST {
         UniversalAST.sTreeScanner = new StringTokenScanner(UniversalAST.FSS);
         UniversalAST.sTreeScanner.addString(UniversalAST.LB, UniversalAST.LBS, null);
         UniversalAST.sTreeScanner.addString(UniversalAST.RB, UniversalAST.RBS, null);
-        universalASTEscaper.addString(UniversalAST.LB, UniversalAST.LBS, injectEscapeChar(UniversalAST.FSS,UniversalAST.LBS));
-        universalASTEscaper.addString(UniversalAST.RB, UniversalAST.RBS, injectEscapeChar(UniversalAST.FSS,UniversalAST.RBS));
-        universalASTEscaper.addString(UniversalAST.FS, ""+UniversalAST.FSS, injectEscapeChar(UniversalAST.FSS, "" + UniversalAST.FSS));
+        universalASTEscaper.addString(UniversalAST.LB, UniversalAST.LBS, injectEscapeChar(UniversalAST.FSS, UniversalAST.LBS));
+        universalASTEscaper.addString(UniversalAST.RB, UniversalAST.RBS, injectEscapeChar(UniversalAST.FSS, UniversalAST.RBS));
+        universalASTEscaper.addString(UniversalAST.FS, "" + UniversalAST.FSS, injectEscapeChar(UniversalAST.FSS, "" + UniversalAST.FSS));
     }
 
     private static void addString(UniversalAST current, StringBuilder sb) {
@@ -387,5 +402,7 @@ public class UniversalAST {
         }
         root.finalizeAST();
         return root;
-    };
+    }
+
+    ;
 }
