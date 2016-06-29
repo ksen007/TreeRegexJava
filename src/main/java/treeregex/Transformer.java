@@ -29,7 +29,7 @@ public class Transformer {
     public SerializedTree modify(Object src, Object2ObjectRBTreeMap<String, Object> state, Object2ObjectRBTreeMap<String, Object> args) {
         SerializedTree source;
         if (!(src instanceof SerializedTree)) {
-            source = SerializedTree.parseSTree(src.toString());
+            source = SerializedTree.parse(src.toString());
         } else {
             source = (SerializedTree)src;
         }

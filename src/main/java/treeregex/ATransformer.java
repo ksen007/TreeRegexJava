@@ -7,15 +7,15 @@ package treeregex;
  */
 public class ATransformer {
     Predicate predicate;
-    TreeRegexAST pattern;
+    TreeRegex pattern;
     Modifier modifier;
     SerializedTree replacer;
 
     public ATransformer(Predicate predicate, String pattern, Modifier modifier, String replacer, boolean isRegex) {
         this.predicate = predicate;
-        this.pattern = TreeRegexAST.parseTreeRegex(pattern, isRegex);
+        this.pattern = TreeRegex.parse(pattern, isRegex);
         this.modifier = modifier;
         if (replacer != null)
-            this.replacer = SerializedTree.parseSTree(replacer);
+            this.replacer = SerializedTree.parse(replacer);
     }
 }

@@ -15,34 +15,34 @@ public class SerializedTreeTest {
     @Test
     public void testParsingUniversalAST1() throws Exception {
         String s = "(% 3+(%abc%)%)";
-        SerializedTree ast = SerializedTree.parseSTree(s);
+        SerializedTree ast = SerializedTree.parse(s);
         assertEquals(s, ast.toString());
     }
 
     @Test
     public void testParsingUniversalAST2() throws Exception {
         String s = "(% 3+/%/)/(/%(%a//bc%)%)";
-        SerializedTree ast = SerializedTree.parseSTree(s);
+        SerializedTree ast = SerializedTree.parse(s);
         assertEquals(s, ast.toString());
     }
 
     @Test
     public void testParsingUniversalAST3() throws Exception {
         String s = "3+/(/%(%a//bc%) 78";
-        SerializedTree ast = SerializedTree.parseSTree(s);
+        SerializedTree ast = SerializedTree.parse(s);
         assertEquals(s, ast.toString());
     }
 
     @Test(expected=java.lang.Error.class)
     public void testParsingUniversalAST4() throws Exception {
         String s = "(% 3+/(%a//bc%)%)cde";
-        SerializedTree ast = SerializedTree.parseSTree(s);
+        SerializedTree ast = SerializedTree.parse(s);
     }
 
     @Test(expected=java.lang.Error.class)
     public void testParsingUniversalAST5() throws Exception {
         String s = "(% 3+/(%a//(%bc%)cde";
-        SerializedTree ast = SerializedTree.parseSTree(s);
+        SerializedTree ast = SerializedTree.parse(s);
     }
 
 

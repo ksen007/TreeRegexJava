@@ -49,7 +49,7 @@ public class SerializedTree {
                 ret.append(child.toString());
                 ret.append(SerializedTree.RBS);
             } else {
-                ret.append(universalASTEscape(child + ""));
+                ret.append(serializedTreeEscape(child + ""));
             }
         }
         return ret.toString();
@@ -95,7 +95,7 @@ public class SerializedTree {
     ;
 
 
-    public boolean matchContext(TreeRegexAST patternStar, ObjectArrayList ret, SerializedTree top, SerializedTree parent, int index) {
+    public boolean matchContext(TreeRegex patternStar, ObjectArrayList ret, SerializedTree top, SerializedTree parent, int index) {
         int oldlen = ret.size();
         ret.push(new SerializedTreeWithHole(top, parent, index));
         boolean ret2 = this.matchExact(patternStar, ret);
@@ -116,7 +116,7 @@ public class SerializedTree {
         return false;
     }
 
-    public int matchStar(TreeRegexAST pattern, ObjectArrayList ret, int k) {
+    public int matchStar(TreeRegex pattern, ObjectArrayList ret, int k) {
         int ktmp = k;
         do {
             k = ktmp;
@@ -125,10 +125,10 @@ public class SerializedTree {
         return k;
     }
 
-    public int matchAlternation(TreeRegexAST pattern, ObjectArrayList ret, int k) {
+    public int matchAlternation(TreeRegex pattern, ObjectArrayList ret, int k) {
         for (int i = 0; i < pattern.children.length; i++) {
             Object o = pattern.children[i];
-            int ktmp = this.matchList((TreeRegexAST) o, ret, k); // @todo type cast could fail
+            int ktmp = this.matchList((TreeRegex) o, ret, k); // @todo type cast could fail
             if (ktmp != -1) {
                 return ktmp;
             }
@@ -136,7 +136,7 @@ public class SerializedTree {
         return -1;
     }
 
-    public int matchList(TreeRegexAST pattern, ObjectArrayList ret, int k) {
+    public int matchList(TreeRegex pattern, ObjectArrayList ret, int k) {
         int oldlen = ret.size();
 
         for (int i = 0; i < pattern.children.length && k != -1; i++) {
@@ -160,8 +160,8 @@ public class SerializedTree {
                 } else {
                     k = -1;
                 }
-            } else if (o instanceof TreeRegexAST) {
-                TreeRegexAST t = (TreeRegexAST) o;
+            } else if (o instanceof TreeRegex) {
+                TreeRegex t = (TreeRegex) o;
                 if (t.isStar) {
                     k = this.matchStar(t, ret, k);
                 } else if (t.isAlternation) {
@@ -193,7 +193,7 @@ public class SerializedTree {
         return k;
     }
 
-    public boolean matchExact(TreeRegexAST pattern, ObjectArrayList ret) {
+    public boolean matchExact(TreeRegex pattern, ObjectArrayList ret) {
         int k = 0;
         int oldlen = ret.size();
 
@@ -205,7 +205,7 @@ public class SerializedTree {
         return true;
     }
 
-    public ObjectArrayList matches(TreeRegexAST pattern) {
+    public ObjectArrayList matches(TreeRegex pattern) {
         ObjectArrayList ret = new ObjectArrayList();
         ret.push(null);
         if (this.matchExact(pattern, ret)) {
@@ -326,7 +326,7 @@ public class SerializedTree {
     public static int cntr = -2;
     public static StringTokenScanner universalASTEscaper = new StringTokenScanner();
 
-    private static String universalASTEscape(String str) {
+    private static String serializedTreeEscape(String str) {
         universalASTEscaper.setStream(str);
         int token = universalASTEscaper.nextToken();
         StringBuilder sb = new StringBuilder();
@@ -370,7 +370,7 @@ public class SerializedTree {
         }
     }
 
-    public static SerializedTree parseSTree(String source) {
+    public static SerializedTree parse(String source) {
         SerializedTree current;
         SerializedTree root = current = new SerializedTree();
         StringBuilder sb = new StringBuilder();
