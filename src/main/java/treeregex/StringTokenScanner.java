@@ -9,7 +9,7 @@ import it.unimi.dsi.fastutil.ints.IntStack;
  * Time: 7:44 AM
  */
 public class StringTokenScanner {
-    private String escapeChar;
+    private int escapeChar;
     public static int EOF = -1;
     private TrieNode trie;
     private IntStack availableChars;
@@ -18,13 +18,14 @@ public class StringTokenScanner {
     public String lexeme;
     public int token;
 
-    public StringTokenScanner(int escapeCharID, String escapeChar) {
+    public StringTokenScanner(int escapeChar) {
         this.escapeChar = escapeChar;
         this.trie = new TrieNode();
-        if (this.escapeChar != null) {
-            this.addStringAux(escapeCharID, this.escapeChar, null);
-            this.addStringAux(escapeCharID - 1, this.escapeChar + this.escapeChar, this.escapeChar);
-        }
+    }
+
+    public StringTokenScanner() {
+        this.escapeChar = -2;
+        this.trie = new TrieNode();
     }
 
     public void setStream(String stream) {
@@ -36,9 +37,6 @@ public class StringTokenScanner {
 
     public void addString(int ID, String lexeme, String actual) {
         this.addStringAux(ID, lexeme, actual);
-        if (this.escapeChar != null) {
-            this.addStringAux(ID - 1, this.escapeChar + lexeme, lexeme);
-        }
     }
 
      private int addStringAux(int ID, String lexeme, String actual) {
@@ -84,6 +82,11 @@ public class StringTokenScanner {
         inp = this.readChar();
         if (inp == StringTokenScanner.EOF) {
             this.lexeme = "";
+            return this.token = inp;
+        }
+        if (inp == this.escapeChar) {
+            inp = this.readChar();
+            this.lexeme = ""+(char)inp;
             return this.token = inp;
         }
         int oldCharIndex = this.charIndex;

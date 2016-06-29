@@ -20,14 +20,14 @@ public class UniversalASTTest {
 
     @Test
     public void testParsingUniversalAST2() throws Exception {
-        String s = "(% 3+/%)/(%(%a//bc%)%)";
+        String s = "(% 3+/%/)/(/%(%a//bc%)%)";
         UniversalAST ast = UniversalAST.parseSTree(s);
         assertEquals(s, ast.toString());
     }
 
     @Test
     public void testParsingUniversalAST3() throws Exception {
-        String s = "3+/(%(%a//bc%) 78";
+        String s = "3+/(/%(%a//bc%) 78";
         UniversalAST ast = UniversalAST.parseSTree(s);
         assertEquals(s, ast.toString());
     }

@@ -16,32 +16,19 @@ public class UniversalAST {
     private ObjectArrayList tmpChildren;
 
 
-    StringTokenScanner universalASTEscaper = new StringTokenScanner(0, null);
-
-    private String universalASTEscape(String str) {
-        universalASTEscaper.setStream(str);
-        int token = universalASTEscaper.nextToken();
-        StringBuilder sb = new StringBuilder();
-        while (token != StringTokenScanner.EOF) {
-            sb.append(universalASTEscaper.lexeme);
-            token = universalASTEscaper.nextToken();
-        }
-        return sb.toString();
-    }
 
     public UniversalAST() {
         tmpChildren = new ObjectArrayList<>();
-        universalASTEscaper.addString(UniversalAST.LB, UniversalAST.LBS, UniversalAST.FSS + UniversalAST.LBS);
-        universalASTEscaper.addString(UniversalAST.RB, UniversalAST.RBS, UniversalAST.FSS + UniversalAST.RBS);
-        universalASTEscaper.addString(UniversalAST.FS, UniversalAST.FSS, UniversalAST.FSS + UniversalAST.FSS);
     }
 
     private void finalizeNode() {
-        children = tmpChildren.toArray();
-        tmpChildren = null;
+        if (tmpChildren != null) {
+            children = tmpChildren.toArray();
+            tmpChildren = null;
+        }
     }
 
-    private void finalizeAST() {
+    public void finalizeAST() {
         finalizeNode();
         for (int i = 0; i < this.children.length; i++) {
             Object child = this.children[i];
@@ -94,7 +81,7 @@ public class UniversalAST {
         return ret.toString();
     };
 
-    private void addChild(Object child) {
+    public void addChild(Object child) {
         this.tmpChildren.push(child);
     };
 
@@ -184,7 +171,7 @@ public class UniversalAST {
                 } else {
                     k = -1;
                 }
-            } else if (o != this.children[k]) {
+            } else if (!o.equals(this.children[k])) {
                 k = -1;
             }
         }
@@ -318,25 +305,46 @@ public class UniversalAST {
 
 */
     public static int LB, RB, FS;
-    public static String LBS;
-    public static String RBS;
-    public static String FSS;
+    public static String LBS, RBS;
+    public static char FSS;
     public static StringTokenScanner sTreeScanner;
+    public static int cntr = -2;
+    public static StringTokenScanner universalASTEscaper = new StringTokenScanner();
+    private static String universalASTEscape(String str) {
+        universalASTEscaper.setStream(str);
+        int token = universalASTEscaper.nextToken();
+        StringBuilder sb = new StringBuilder();
+        while (token != StringTokenScanner.EOF) {
+            sb.append(universalASTEscaper.lexeme);
+            token = universalASTEscaper.nextToken();
+        }
+        return sb.toString();
+    }
+
+    public static String injectEscapeChar(char escapeChar, String source) {
+        StringBuilder sb = new StringBuilder();
+        for(int i=0; i<source.length(); i++) {
+            sb.append(escapeChar).append(source.charAt(i));
+        }
+        return sb.toString();
+    }
 
     static {
-        LBS = "(%";
-        RBS = "%)";
-        FSS = "/";
-        int cntr = -2;
-        LB = cntr;
+        UniversalAST.LBS = "(%";
+        UniversalAST.RBS = "%)";
+        UniversalAST.FSS = '/';
+        UniversalAST.LB = cntr;
         --cntr;
-        RB = --cntr;
+        UniversalAST.RB = --cntr;
         --cntr;
-        FS = --cntr;
+        UniversalAST.FS = --cntr;
         --cntr;
-        sTreeScanner = new StringTokenScanner(UniversalAST.FS, UniversalAST.FSS);
-        sTreeScanner.addString(UniversalAST.LB, UniversalAST.LBS, null);
-        sTreeScanner.addString(UniversalAST.RB, UniversalAST.RBS, null);
+        UniversalAST.sTreeScanner = new StringTokenScanner(UniversalAST.FSS);
+        UniversalAST.sTreeScanner.addString(UniversalAST.LB, UniversalAST.LBS, null);
+        UniversalAST.sTreeScanner.addString(UniversalAST.RB, UniversalAST.RBS, null);
+        universalASTEscaper.addString(UniversalAST.LB, UniversalAST.LBS, injectEscapeChar(UniversalAST.FSS,UniversalAST.LBS));
+        universalASTEscaper.addString(UniversalAST.RB, UniversalAST.RBS, injectEscapeChar(UniversalAST.FSS,UniversalAST.RBS));
+        universalASTEscaper.addString(UniversalAST.FS, ""+UniversalAST.FSS, injectEscapeChar(UniversalAST.FSS, "" + UniversalAST.FSS));
     }
 
     private static void addString(UniversalAST current, StringBuilder sb) {
