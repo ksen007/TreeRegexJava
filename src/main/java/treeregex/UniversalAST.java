@@ -95,7 +95,7 @@ public class UniversalAST {
     ;
 
 
-    public boolean matchContext(TRegexAST patternStar, ObjectArrayList ret, UniversalAST top, UniversalAST parent, int index) {
+    public boolean matchContext(TreeRegexAST patternStar, ObjectArrayList ret, UniversalAST top, UniversalAST parent, int index) {
         int oldlen = ret.size();
         ret.push(new UniversalASTWithHole(top, parent, index));
         boolean ret2 = this.matchExact(patternStar, ret);
@@ -116,7 +116,7 @@ public class UniversalAST {
         return false;
     }
 
-    public int matchStar(TRegexAST pattern, ObjectArrayList ret, int k) {
+    public int matchStar(TreeRegexAST pattern, ObjectArrayList ret, int k) {
         int ktmp = k;
         do {
             k = ktmp;
@@ -125,10 +125,10 @@ public class UniversalAST {
         return k;
     }
 
-    public int matchAlternation(TRegexAST pattern, ObjectArrayList ret, int k) {
+    public int matchAlternation(TreeRegexAST pattern, ObjectArrayList ret, int k) {
         for (int i = 0; i < pattern.children.length; i++) {
             Object o = pattern.children[i];
-            int ktmp = this.matchList((TRegexAST) o, ret, k); // @todo type cast could fail
+            int ktmp = this.matchList((TreeRegexAST) o, ret, k); // @todo type cast could fail
             if (ktmp != -1) {
                 return ktmp;
             }
@@ -136,7 +136,7 @@ public class UniversalAST {
         return -1;
     }
 
-    public int matchList(TRegexAST pattern, ObjectArrayList ret, int k) {
+    public int matchList(TreeRegexAST pattern, ObjectArrayList ret, int k) {
         int oldlen = ret.size();
 
         for (int i = 0; i < pattern.children.length && k != -1; i++) {
@@ -160,8 +160,8 @@ public class UniversalAST {
                 } else {
                     k = -1;
                 }
-            } else if (o instanceof TRegexAST) {
-                TRegexAST t = (TRegexAST) o;
+            } else if (o instanceof TreeRegexAST) {
+                TreeRegexAST t = (TreeRegexAST) o;
                 if (t.isStar) {
                     k = this.matchStar(t, ret, k);
                 } else if (t.isAlternation) {
@@ -193,7 +193,7 @@ public class UniversalAST {
         return k;
     }
 
-    public boolean matchExact(TRegexAST pattern, ObjectArrayList ret) {
+    public boolean matchExact(TreeRegexAST pattern, ObjectArrayList ret) {
         int k = 0;
         int oldlen = ret.size();
 
@@ -205,7 +205,7 @@ public class UniversalAST {
         return true;
     }
 
-    public ObjectArrayList matches(TRegexAST pattern) {
+    public ObjectArrayList matches(TreeRegexAST pattern) {
         ObjectArrayList ret = new ObjectArrayList();
         ret.push(null);
         if (this.matchExact(pattern, ret)) {
