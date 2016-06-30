@@ -1,7 +1,5 @@
 package treeregex;
 
-import it.unimi.dsi.fastutil.objects.ObjectArrayList;
-
 /**
  * Author: Koushik Sen (ksen@cs.berkeley.edu)
  * Date: 6/29/16
@@ -20,14 +18,14 @@ public class TreeRegexLib {
         if (replacement != null) this.mod = SerializedTree.parse(replacement);
     }
 
-    public ObjectArrayList matches(String source) {
+    public Object[] matches(String source) {
         SerializedTree stree = SerializedTree.parse(source);
         return stree.matches(this.treeRegexAST);
     }
 
     public SerializedTree replace(String source) {
         SerializedTree stree = SerializedTree.parse(source);
-        ObjectArrayList matches = stree.matches(this.treeRegexAST);
+        Object[] matches = stree.matches(this.treeRegexAST);
         SerializedTree mod = this.mod.replace(matches);
         return mod;
     }

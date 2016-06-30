@@ -42,7 +42,7 @@ public class Transformer {
         Object2ObjectRBTreeMap<String, Object> ret = new Object2ObjectRBTreeMap<>();
         for (ATransformer t : this.preTransformers) {
             if (t.predicate == null || t.predicate.apply(state, args)) {
-                ObjectArrayList matches = source.matches(t.pattern);
+                Object[] matches = source.matches(t.pattern);
                 if (t.modifier != null) {
                     matches = t.modifier.apply(matches, state, args, ret);
                 }
@@ -58,7 +58,7 @@ public class Transformer {
         }
         for (ATransformer t : this.postTransformers) {
             if (t.predicate == null || t.predicate.apply(state, args)) {
-                ObjectArrayList matches = source.matches(t.pattern);
+                Object[] matches = source.matches(t.pattern);
                 if (t.modifier != null)
                     matches = t.modifier.apply(matches, state, args, ret);
                 if (t.replacer != null && matches != null) {

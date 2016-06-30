@@ -205,18 +205,18 @@ public class SerializedTree {
         return true;
     }
 
-    public ObjectArrayList matches(TreeRegex pattern) {
+    public Object[] matches(TreeRegex pattern) {
         ObjectArrayList ret = new ObjectArrayList();
         ret.push(null);
         if (this.matchExact(pattern, ret)) {
-            return ret;
+            return ret.toArray();
         } else {
             return null;
         }
     }
 
 
-    public void replaceInString(String template, ObjectArrayList subs, ObjectArrayList stack) {
+    public void replaceInString(String template, Object[] subs, ObjectArrayList stack) {
         StringBuilder sb = new StringBuilder();
         int len = template.length();
         int prev = 0;
@@ -240,10 +240,10 @@ public class SerializedTree {
                     i--;
                     if (number.length() > 0) {
                         int num = Integer.parseInt(number.toString());
-                        if (num >= subs.size() || num < 0) {
+                        if (num >= subs.length || num < 0) {
                             throw new Error("Capture at index " + (number.toString() + 1) + " not found in " + subs);
                         } else {
-                            Object sub = subs.get(num);
+                            Object sub = subs[num];
                             if (sub instanceof SerializedTree || sub instanceof SerializedTreeWithHole) {
                                 if (sb.length() > 0) {
                                     stack.push(sb.toString());
@@ -273,7 +273,7 @@ public class SerializedTree {
     }
 
 
-    public SerializedTree replace(ObjectArrayList subs) {
+    public SerializedTree replace(Object[] subs) {
         ObjectArrayList stack = new ObjectArrayList();
         int count = 0;
         for (int i = 0; i < this.children.length; i++) {

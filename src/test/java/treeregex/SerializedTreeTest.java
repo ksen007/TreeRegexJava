@@ -1,6 +1,5 @@
 package treeregex;
 
-import it.unimi.dsi.fastutil.objects.ObjectArrayList;
 import org.junit.Test;
 
 import static junit.framework.Assert.assertEquals;
@@ -50,59 +49,59 @@ public class SerializedTreeTest {
     public void testMatching1() throws Exception {
         String pstring = "982(%Hello123%)";
         TreeRegexLib pattern = new TreeRegexLib("(\\d+)(%([a-zA-Z_]+)(\\d+)%)", true);
-        ObjectArrayList matches = pattern.matches(pstring);
-        assertEquals("982", matches.get(1));
-        assertEquals("Hello", matches.get(2));
-        assertEquals("123", matches.get(3));
+        Object[] matches = pattern.matches(pstring);
+        assertEquals("982", matches[1]);
+        assertEquals("Hello", matches[2]);
+        assertEquals("123", matches[3]);
     }
 
     @Test
     public void testMatching2() throws Exception {
         String pstring = "982(%Hello(%World%)123%)";
         TreeRegexLib pattern = new TreeRegexLib("(\\d+)(%([a-zA-Z_]+)@(\\d+)%)", true);
-        ObjectArrayList matches = pattern.matches(pstring);
-        assertEquals("982", matches.get(1));
-        assertEquals("Hello", matches.get(2));
-        assertEquals("World", matches.get(3)+"");
-        assertEquals("123", matches.get(4));
+        Object[] matches = pattern.matches(pstring);
+        assertEquals("982", matches[1]);
+        assertEquals("Hello", matches[2]);
+        assertEquals("World", matches[3]+"");
+        assertEquals("123", matches[4]);
     }
 
     @Test
     public void testMatching3() throws Exception {
         String pstring = "982(%Hello(%World(%novar%) 123 (%var%)%)123%)";
         TreeRegexLib pattern = new TreeRegexLib("(\\d+)(*(var)*)", true);
-        ObjectArrayList matches = pattern.matches(pstring);
-        assertEquals("982", matches.get(1));
-        assertEquals("var", matches.get(3));
+        Object[] matches = pattern.matches(pstring);
+        assertEquals("982", matches[1]);
+        assertEquals("var", matches[3]);
     }
 
     @Test
     public void testMatching4() throws Exception {
         String pstring = "982(%Hello(%World(%novar%)%)(%World(%var%)%)end%)";
         TreeRegexLib pattern = new TreeRegexLib("(\\d+)(*(World)(%(var)%)*)", true);
-        ObjectArrayList matches = pattern.matches(pstring);
-        assertEquals("982", matches.get(1));
-        assertEquals("World", matches.get(3));
-        assertEquals("var", matches.get(4));
+        Object[] matches = pattern.matches(pstring);
+        assertEquals("982", matches[1]);
+        assertEquals("World", matches[3]);
+        assertEquals("var", matches[4]);
     }
 
     @Test
     public void testMatching5() throws Exception {
         String pstring = "982(%ihb(%Hello(%World(%novar%)%)(%World(%novar%)%)end%)123(%Hello(%World(%novar%)%)(%World(%var%)%)end%)end%)";
         TreeRegexLib pattern = new TreeRegexLib("(\\d+)(*(World)(%(var)%)*)", true);
-        ObjectArrayList matches = pattern.matches(pstring);
-        assertEquals("982", matches.get(1));
-        assertEquals("World", matches.get(3));
-        assertEquals("var", matches.get(4));
+        Object[] matches = pattern.matches(pstring);
+        assertEquals("982", matches[1]);
+        assertEquals("World", matches[3]);
+        assertEquals("var", matches[4]);
     }
 
     @Test
     public void testMatching6() throws Exception {
         String pstring = "x(%a(%b%)c%)y";
         TreeRegexLib pattern = new TreeRegexLib("x(*b*)y", true);
-        ObjectArrayList matches = pattern.matches(pstring);
-        System.out.println(matches.get(1)+"");
-        assertEquals("a(%b%)c - b", matches.get(1)+"");
+        Object[] matches = pattern.matches(pstring);
+        System.out.println(matches[1]+"");
+        assertEquals("a(%b%)c - b", matches[1]+"");
     }
 
     @Test
