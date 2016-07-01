@@ -18,12 +18,67 @@ public class Transformer {
         this.postTransformers = new ObjectArrayList<>();
     }
 
+    public void addTransformer(Predicate predicate, String pattern, Modifier modifier, String replacer, boolean isRegex, boolean isPartial, boolean isPre) {
+        if (isPre) {
+            this.preTransformers.push(new ATransformer(predicate, pattern, modifier, replacer, isRegex, isPartial));
+        } else {
+            this.postTransformers.push(new ATransformer(predicate, pattern, modifier, replacer, isRegex, isPartial));
+        }
+    }
+
     public void addTransformer(Predicate predicate, String pattern, Modifier modifier, String replacer, boolean isRegex, boolean isPre) {
         if (isPre) {
-            this.preTransformers.push(new ATransformer(predicate, pattern, modifier, replacer, isRegex));
+            this.preTransformers.push(new ATransformer(predicate, pattern, modifier, replacer, isRegex, false));
         } else {
-            this.postTransformers.push(new ATransformer(predicate, pattern, modifier, replacer, isRegex));
+            this.postTransformers.push(new ATransformer(predicate, pattern, modifier, replacer, isRegex, false));
         }
+    }
+
+    private SerializedTree matchAndReplace(ObjectArrayList<ATransformer> transformers,
+                                           SerializedTree source,
+                                           Object2ObjectRBTreeMap<String, Object> state,
+                                           Object2ObjectRBTreeMap<String, Object> args,
+                                           Object2ObjectRBTreeMap<String, Object> ret) {
+        for (ATransformer t : transformers) {
+            if (t.predicate == null || t.predicate.apply(state, args)) {
+                if (t.isPartial) {
+                    int slen = source.length();
+                    for (int i = 0; i < slen; i++) {
+                        ObjectArrayList ret2 = new ObjectArrayList();
+                        ret2.push(null);
+                        int to = source.matchExactOrPartial(t.pattern, i, false, ret2);
+                        Object[] matches = (to != -1) ? ret2.toArray() : null;
+                        if (t.modifier != null) {
+                            matches = t.modifier.apply(matches, state, args, ret);
+                        }
+                        if (t.replacer != null && matches != null) {
+                            SerializedTree tmp = t.replacer.replace(matches);
+                            int len = to-i;
+                            int len2 = tmp.length();
+                            SerializedTree tmp2 = new SerializedTree(slen - len + len2);
+                            for (int j = 0; j < i; j++) {
+                                tmp2.children[j] = source.children[j];
+                            }
+                            for (int j = 0; j < len2; j++) {
+                                tmp2.children[j + i] = tmp.children[j];
+                            }
+                            for (int j = to; j < slen; j++) {
+                                tmp2.children[j + len2 - len] = source.children[j];
+                            }
+                            source = tmp2;
+                        }
+                    }
+                } else {
+                    Object[] matches = source.matches(t.pattern);
+                    if (t.modifier != null)
+                        matches = t.modifier.apply(matches, state, args, ret);
+                    if (t.replacer != null && matches != null) {
+                        source = t.replacer.replace(matches);
+                    }
+                }
+            }
+        }
+        return source;
     }
 
     public SerializedTree modify(Object src, Object2ObjectRBTreeMap<String, Object> state, Object2ObjectRBTreeMap<String, Object> args) {
@@ -31,7 +86,7 @@ public class Transformer {
         if (!(src instanceof SerializedTree)) {
             source = SerializedTree.parse(src.toString());
         } else {
-            source = (SerializedTree)src;
+            source = (SerializedTree) src;
         }
         if (state == null) {
             state = new Object2ObjectRBTreeMap<>();
@@ -40,32 +95,13 @@ public class Transformer {
             args = new Object2ObjectRBTreeMap<>();
         }
         Object2ObjectRBTreeMap<String, Object> ret = new Object2ObjectRBTreeMap<>();
-        for (ATransformer t : this.preTransformers) {
-            if (t.predicate == null || t.predicate.apply(state, args)) {
-                Object[] matches = source.matches(t.pattern);
-                if (t.modifier != null) {
-                    matches = t.modifier.apply(matches, state, args, ret);
-                }
-                if (t.replacer != null && matches != null) {
-                    source = t.replacer.replace(matches);
-                }
-            }
-        }
+        source = matchAndReplace(this.preTransformers, source, state, args, ret);
         int len = source.children.length;
         for (int i = 0; i < len; i++) {
             if (source.children[i] instanceof SerializedTree)
                 source.children[i] = this.modify(source.children[i], state, ret);
         }
-        for (ATransformer t : this.postTransformers) {
-            if (t.predicate == null || t.predicate.apply(state, args)) {
-                Object[] matches = source.matches(t.pattern);
-                if (t.modifier != null)
-                    matches = t.modifier.apply(matches, state, args, ret);
-                if (t.replacer != null && matches != null) {
-                    source = t.replacer.replace(matches);
-                }
-            }
-        }
+        source = matchAndReplace(this.postTransformers, source, state, args, ret);
         return source;
 
     }

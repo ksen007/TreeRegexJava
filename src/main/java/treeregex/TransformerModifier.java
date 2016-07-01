@@ -23,16 +23,23 @@ public class TransformerModifier implements Modifier {
         transformers = new Int2ObjectArrayMap<Transformer>();
         this.pre = pre;
         this.post = post;
-        addTransformerAtIndex(i, predicate, pattern, modifier, replacer, isRegex, isPre);
+        addTransformerAtIndex(i, predicate, pattern, modifier, replacer, isRegex, false, isPre);
     }
 
-    public void addTransformerAtIndex(int i, Predicate predicate, String pattern, Modifier modifier, String replacer, boolean isRegex, boolean isPre) {
+    public TransformerModifier(int i, Predicate predicate, String pattern, Modifier modifier, String replacer, boolean isRegex, boolean isPartial, boolean isPre, Modifier pre, Modifier post) {
+        transformers = new Int2ObjectArrayMap<Transformer>();
+        this.pre = pre;
+        this.post = post;
+        addTransformerAtIndex(i, predicate, pattern, modifier, replacer, isRegex, isPartial, isPre);
+    }
+
+    public void addTransformerAtIndex(int i, Predicate predicate, String pattern, Modifier modifier, String replacer, boolean isRegex, boolean isPartial, boolean isPre) {
         Transformer tmp = transformers.get(i);
         if (tmp == null) {
             tmp = new Transformer();
             transformers.put(i, tmp);
         }
-        tmp.addTransformer(predicate, pattern, modifier, replacer, isRegex, isPre);
+        tmp.addTransformer(predicate, pattern, modifier, replacer, isRegex, isPartial, isPre);
     }
 
     @Override

@@ -20,6 +20,10 @@ public class SerializedTree {
         tmpChildren = new ObjectArrayList<>();
     }
 
+    public SerializedTree(int nChild) {
+        children = new Object[nChild];
+    }
+
     private void finalizeNode() {
         if (tmpChildren != null) {
             children = tmpChildren.toArray();
@@ -98,16 +102,16 @@ public class SerializedTree {
     public boolean matchContext(TreeRegex patternStar, ObjectArrayList ret, SerializedTree top, SerializedTree parent, int index) {
         int oldlen = ret.size();
         ret.push(new SerializedTreeWithHole(top, parent, index));
-        boolean ret2 = this.matchExact(patternStar, ret);
-        if (ret2) {
+        int ret2 = this.matchExactOrPartial(patternStar, 0, true, ret);
+        if (ret2 != -1) {
             return true;
         }
         ret.removeElements(oldlen, ret.size());
 
         for (int i = 0; i < this.children.length; i++) {
             if (this.children[i] instanceof SerializedTree) {
-                ret2 = ((SerializedTree) this.children[i]).matchContext(patternStar, ret, top, this, i);
-                if (ret2) {
+                boolean ret3 = ((SerializedTree) this.children[i]).matchContext(patternStar, ret, top, this, i);
+                if (ret3) {
                     return true;
                 }
                 ret.removeElements(oldlen, ret.size());
@@ -176,8 +180,8 @@ public class SerializedTree {
                         if (res) k++;
                         else k = -1;
                     } else {
-                        boolean res = ast.matchExact(t, ret);
-                        if (res) k++;
+                        int res = ast.matchExactOrPartial(t, 0, true, ret);
+                        if (res != -1) k++;
                         else k = -1;
                     }
                 } else {
@@ -193,22 +197,25 @@ public class SerializedTree {
         return k;
     }
 
-    public boolean matchExact(TreeRegex pattern, ObjectArrayList ret) {
-        int k = 0;
+    public int matchExactOrPartial(TreeRegex pattern, int k, boolean checkExact, ObjectArrayList ret) {
         int oldlen = ret.size();
 
         k = this.matchList(pattern, ret, k);
-        if (this.children.length != k) {
+        if (k == -1 || (checkExact && this.children.length != k)) {
             ret.removeElements(oldlen, ret.size());
-            return false;
+            return -1;
         }
-        return true;
+        return k;
+    }
+
+    public int length() {
+        return children.length;
     }
 
     public Object[] matches(TreeRegex pattern) {
         ObjectArrayList ret = new ObjectArrayList();
         ret.push(null);
-        if (this.matchExact(pattern, ret)) {
+        if (this.matchExactOrPartial(pattern, 0, true, ret)!= -1) {
             return ret.toArray();
         } else {
             return null;
