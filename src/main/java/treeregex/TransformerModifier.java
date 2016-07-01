@@ -1,7 +1,7 @@
 package treeregex;
 
 import it.unimi.dsi.fastutil.ints.Int2ObjectArrayMap;
-import it.unimi.dsi.fastutil.objects.Object2ObjectRBTreeMap;
+import it.unimi.dsi.fastutil.objects.Object2ObjectMap;
 
 /**
  * Author: Koushik Sen (ksen@cs.berkeley.edu)
@@ -43,9 +43,9 @@ public class TransformerModifier implements Modifier {
     }
 
     @Override
-    public Object[] apply(Object[] matches, Object2ObjectRBTreeMap<String, Object> state, Object2ObjectRBTreeMap<String, Object> args, Object2ObjectRBTreeMap<String, Object> ret) {
+    public Object[] apply(Object[] matches, Object2ObjectMap<String, Object> state, Object2ObjectMap<String, Object> args, Object2ObjectMap<String, Object> childArgs) {
         if (pre != null) {
-            matches = pre.apply(matches, state, args, ret);
+            matches = pre.apply(matches, state, args, childArgs);
         }
         int i = 0;
         if (matches != null) {
@@ -62,7 +62,7 @@ public class TransformerModifier implements Modifier {
             }
         }
         if (post != null) {
-            matches = post.apply(matches, state, args, ret);
+            matches = post.apply(matches, state, args, childArgs);
         }
         return matches;
     }

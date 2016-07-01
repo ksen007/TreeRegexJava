@@ -38,7 +38,7 @@ public class Transformer {
                                            SerializedTree source,
                                            Object2ObjectRBTreeMap<String, Object> state,
                                            Object2ObjectRBTreeMap<String, Object> args,
-                                           Object2ObjectRBTreeMap<String, Object> ret) {
+                                           Object2ObjectRBTreeMap<String, Object> childArgs) {
         for (ATransformer t : transformers) {
             if (t.predicate == null || t.predicate.apply(state, args)) {
                 if (t.isPartial) {
@@ -49,7 +49,7 @@ public class Transformer {
                         int to = source.matchExactOrPartial(t.pattern, i, false, ret2);
                         Object[] matches = (to != -1) ? ret2.toArray() : null;
                         if (t.modifier != null) {
-                            matches = t.modifier.apply(matches, state, args, ret);
+                            matches = t.modifier.apply(matches, state, args, childArgs);
                         }
                         if (t.replacer != null && matches != null) {
                             SerializedTree tmp = t.replacer.replace(matches);
@@ -71,7 +71,7 @@ public class Transformer {
                 } else {
                     Object[] matches = source.matches(t.pattern);
                     if (t.modifier != null)
-                        matches = t.modifier.apply(matches, state, args, ret);
+                        matches = t.modifier.apply(matches, state, args, childArgs);
                     if (t.replacer != null && matches != null) {
                         source = t.replacer.replace(matches);
                     }
@@ -94,14 +94,14 @@ public class Transformer {
         if (args == null) {
             args = new Object2ObjectRBTreeMap<>();
         }
-        Object2ObjectRBTreeMap<String, Object> ret = new Object2ObjectRBTreeMap<>();
-        source = matchAndReplace(this.preTransformers, source, state, args, ret);
+        Object2ObjectRBTreeMap<String, Object> childArgs = new Object2ObjectRBTreeMap<>();
+        source = matchAndReplace(this.preTransformers, source, state, args, childArgs);
         int len = source.children.length;
         for (int i = 0; i < len; i++) {
             if (source.children[i] instanceof SerializedTree)
-                source.children[i] = this.modify(source.children[i], state, ret);
+                source.children[i] = this.modify(source.children[i], state, childArgs);
         }
-        source = matchAndReplace(this.postTransformers, source, state, args, ret);
+        source = matchAndReplace(this.postTransformers, source, state, args, childArgs);
         return source;
 
     }

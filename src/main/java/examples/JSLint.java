@@ -1,6 +1,6 @@
 package examples;
 
-import it.unimi.dsi.fastutil.objects.Object2ObjectRBTreeMap;
+import it.unimi.dsi.fastutil.objects.Object2ObjectMap;
 import org.json.JSONObject;
 import treeregex.Modifier;
 import treeregex.Predicate;
@@ -15,19 +15,24 @@ import java.util.Scanner;
  * Created by ksen on 7/1/16.
  */
 public class JSLint {
+    public static String toRegexString(String str, String old) {
+        String ret = str.replaceAll("  ", "\\\\s+").replaceAll(" ", "\\\\s*").replaceAll("\\.\\.\\.\\.", "[\\\\s\\\\S]+").
+                replaceAll("\\.\\.\\.", "[\\\\S\\\\s]*").replaceAll("00", "\\\\d+").replaceAll("0", "\\\\d*").replaceAll("WW", "\\\\w+").replace("W", "\\\\w*");
+        if (old != null && old.equals(ret)) {
+            System.out.println(str + " not expanded to " + old + " and expanded to " + ret);
+            throw new RuntimeException(str + " not expanded to " + old + " and expanded to " + ret);
+        }
+//        System.out.println(ret);
+        return ret;
+    }
+
 
 
     public static void main(String[] args) throws FileNotFoundException {
         String content = new Scanner(new File(args[0])).useDelimiter("\\Z").next();
-        Transformer t = new Transformer();
-        t.addTransformer(null, "L\\s+\\{\\s*@\\s*\\}\\s*", new TransformerModifier(1, new Predicate() {
+        Modifier checkDup = new Modifier() {
             @Override
-            public boolean apply(Object2ObjectRBTreeMap<String, Object> state, Object2ObjectRBTreeMap<String, Object> args) {
-                return !args.containsKey("first");
-            }
-        }, "(%propertyAssignment\\s+(%\\w+\\s+(\\S+)\\s*%)\\s*:\\s*@\\s*%)", new Modifier() {
-            @Override
-            public Object[] apply(Object[] matches, Object2ObjectRBTreeMap<String, Object> state, Object2ObjectRBTreeMap<String, Object> args, Object2ObjectRBTreeMap<String, Object> ret) {
+            public Object[] apply(Object[] matches, Object2ObjectMap<String, Object> state, Object2ObjectMap<String, Object> args, Object2ObjectMap<String, Object> childArgs) {
                 if (matches != null) {
                     JSONObject json = new JSONObject("{\"x\" : " + matches[1] + "}");
                     String s = json.get("x") + "";
@@ -37,12 +42,22 @@ public class JSLint {
                         state.put(s, s);
                     }
                 }
-                ret.put("first", true);
+                childArgs.put("first", true);
                 return matches;
             }
-        }, null, true, true, true, null, null), null, true, true);
+        };
+        Predicate isFirst = new Predicate() {
+            @Override
+            public boolean apply(Object2ObjectMap<String, Object> state, Object2ObjectMap<String, Object> args) {
+                return !args.containsKey("first");
+            }
+        };
+
+        Transformer t = new Transformer();
+        t.addTransformer(null, toRegexString("L  \\{ @ \\} ", null),
+                new TransformerModifier(1, isFirst, toRegexString("(%propertyAssignment  (%WW  (....) %) : @ %)", null), checkDup , null, true, true, true, null, null),
+                null, true, true);
         t.modify(content, null, null);
-        //t.addTransformer(true, toRegexString("L(00) \\{ (**(%(L|V)00 (....)%) : @ , **) (**(%(L|V)00 (....)%) : @**) \\} "), checkDuplicates, null, true, true);
 
     }
 }

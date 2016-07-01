@@ -1,6 +1,6 @@
 package treeregex;
 
-import it.unimi.dsi.fastutil.objects.Object2ObjectRBTreeMap;
+import it.unimi.dsi.fastutil.objects.Object2ObjectMap;
 
 /**
  * Author: Koushik Sen (ksen@cs.berkeley.edu)
@@ -8,5 +8,5 @@ import it.unimi.dsi.fastutil.objects.Object2ObjectRBTreeMap;
  * Time: 1:09 PM
  */
 public interface Predicate {
-    boolean apply(Object2ObjectRBTreeMap<String, Object> state, Object2ObjectRBTreeMap<String, Object> args);
+        boolean apply(Object2ObjectMap<String, Object> state, Object2ObjectMap<String, Object> args);
 }
