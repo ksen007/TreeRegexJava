@@ -48,16 +48,18 @@ public class TransformerModifier implements Modifier {
             matches = pre.apply(matches, state, args, ret);
         }
         int i = 0;
-        for (Object match : matches) {
-            Transformer tmp = transformers.get(i);
-            if (tmp != null) {
-                if (match instanceof SerializedTree) {
-                    matches[i] = tmp.modify(match, state, ret);
-                } else {
-                    throw new RuntimeException("Cannot apply modifier to non-serialized tree "+match);
+        if (matches != null) {
+            for (Object match : matches) {
+                Transformer tmp = transformers.get(i);
+                if (tmp != null) {
+                    if (match instanceof SerializedTree) {
+                        matches[i] = tmp.modify(match, null, null);
+                    } else {
+                        throw new RuntimeException("Cannot apply modifier to non-serialized tree " + match);
+                    }
                 }
+                i++;
             }
-            i++;
         }
         if (post != null) {
             matches = post.apply(matches, state, args, ret);

@@ -147,7 +147,7 @@ public class SerializedTree {
             Object o = pattern.children[i];
             if (o instanceof Pattern) {
                 String str;
-                if (this.children[k] instanceof SerializedTree || k >= this.children.length) {
+                if (k >= this.children.length || this.children[k] instanceof SerializedTree) {
                     k--;
                     str = "";
                 } else {

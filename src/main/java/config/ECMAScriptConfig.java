@@ -39,6 +39,7 @@ public class ECMAScriptConfig extends Config {
         if (foundLeaf) {
             if (ruleName.contains("Statement")) return "S";
             if (ruleName.contains("Expression")) return "E";
+            if (ruleName.contains("Literal")) return "L";
             if (ruleName.equals("literal")) return "L";
             if (skippedNames.contains(ruleName)) return null;
             return ruleName;
