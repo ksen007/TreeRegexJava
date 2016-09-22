@@ -11,20 +11,16 @@ import java.util.regex.Pattern;
  * Time: 10:02 AM
  */
 public class TreeRegex extends SerializedTree {
-    public boolean isStar;
-    public boolean isAlternation;
     public boolean isAt;
     public boolean isContext;
 
-    public TreeRegex(boolean isContext, boolean isAt, boolean isStar, boolean isAlternation) {
+    public TreeRegex(boolean isContext, boolean isAt) {
         this.isContext = isContext;
         this.isAt = isAt;
-        this.isStar = isStar;
-        this.isAlternation = isAlternation;
     }
 
-    public static int LT, RT, LL, RL, LA, RA, AT;
-    public static String LTS, RTS, LLS, RLS, LAS, RAS, ATS;
+    public static int LT, RT, AT;
+    public static String LTS, RTS, ATS;
     public static StringTokenScanner treeRegexScanner;
     public static TreeRegex ATNode;
     public static StringTokenScanner treeRegexASTEscaper;
@@ -34,34 +30,18 @@ public class TreeRegex extends SerializedTree {
         --cntr;
         TreeRegex.RT = --cntr;
         --cntr;
-        TreeRegex.LL = --cntr;
-        --cntr;
-        TreeRegex.RL = --cntr;
-        --cntr;
-        TreeRegex.LA = --cntr;
-        --cntr;
-        TreeRegex.RA = --cntr;
-        --cntr;
         TreeRegex.AT = --cntr;
         --cntr;
         TreeRegex.LTS = "(*";
         TreeRegex.RTS = "*)";
-        TreeRegex.LLS = "(**";
-        TreeRegex.RLS = "**)";
-        TreeRegex.LAS = "(|";
-        TreeRegex.RAS = "|)";
         TreeRegex.ATS = "@";
         TreeRegex.treeRegexScanner = new StringTokenScanner(SerializedTree.FSS);
         TreeRegex.treeRegexScanner.addString(SerializedTree.LB, SerializedTree.LBS, null);
         TreeRegex.treeRegexScanner.addString(SerializedTree.RB, SerializedTree.RBS, null);
         TreeRegex.treeRegexScanner.addString(TreeRegex.LT, TreeRegex.LTS, null);
         TreeRegex.treeRegexScanner.addString(TreeRegex.RT, TreeRegex.RTS, null);
-        TreeRegex.treeRegexScanner.addString(TreeRegex.LL, TreeRegex.LLS, null);
-        TreeRegex.treeRegexScanner.addString(TreeRegex.RL, TreeRegex.RLS, null);
-        TreeRegex.treeRegexScanner.addString(TreeRegex.LA, TreeRegex.LAS, null);
-        TreeRegex.treeRegexScanner.addString(TreeRegex.RA, TreeRegex.RAS, null);
         TreeRegex.treeRegexScanner.addString(TreeRegex.AT, TreeRegex.ATS, null);
-        TreeRegex.ATNode = new TreeRegex(false, true, false, false);
+        TreeRegex.ATNode = new TreeRegex(false, true);
 
         treeRegexASTEscaper = new StringTokenScanner();
         treeRegexASTEscaper.addString(SerializedTree.LB, SerializedTree.LBS, injectEscapeChar(SerializedTree.FSS, SerializedTree.LBS));
@@ -69,10 +49,6 @@ public class TreeRegex extends SerializedTree {
         treeRegexASTEscaper.addString(SerializedTree.FS, "" + SerializedTree.FSS, injectEscapeChar(SerializedTree.FSS, "" + SerializedTree.FSS));
         treeRegexASTEscaper.addString(TreeRegex.LT, TreeRegex.LTS, injectEscapeChar(SerializedTree.FSS, TreeRegex.LTS));
         treeRegexASTEscaper.addString(TreeRegex.RT, TreeRegex.RTS, injectEscapeChar(SerializedTree.FSS, TreeRegex.RTS));
-        treeRegexASTEscaper.addString(TreeRegex.LL, TreeRegex.LLS, injectEscapeChar(SerializedTree.FSS, TreeRegex.LLS));
-        treeRegexASTEscaper.addString(TreeRegex.RL, TreeRegex.RLS, injectEscapeChar(SerializedTree.FSS, TreeRegex.RLS));
-        treeRegexASTEscaper.addString(TreeRegex.LA, TreeRegex.LAS, injectEscapeChar(SerializedTree.FSS, TreeRegex.LAS));
-        treeRegexASTEscaper.addString(TreeRegex.RA, TreeRegex.RAS, injectEscapeChar(SerializedTree.FSS, TreeRegex.RAS));
         treeRegexASTEscaper.addString(TreeRegex.AT, TreeRegex.ATS, injectEscapeChar(SerializedTree.FSS, TreeRegex.ATS));
 
     }
@@ -87,7 +63,7 @@ public class TreeRegex extends SerializedTree {
 
     public static TreeRegex parse(String source, boolean isRegex) {
         TreeRegex current;
-        TreeRegex root = current = new TreeRegex(false, false, false, false);
+        TreeRegex root = current = new TreeRegex(false, false);
         StringBuilder sb = new StringBuilder();
         Stack<TreeRegex> stack = new ObjectArrayList<>();
         TreeRegex prev;
@@ -98,7 +74,7 @@ public class TreeRegex extends SerializedTree {
             if (token == SerializedTree.LB) {
                 pushString(current, sb, isRegex);
                 stack.push(current);
-                current = new TreeRegex(false, false, false, false);
+                current = new TreeRegex(false, false);
             } else if (token == SerializedTree.RB) {
                 if (stack.isEmpty() || current.isContext) {
                     throw new Error("Unbalanced " + SerializedTree.RBS + " after " + TreeRegex.treeRegexScanner.scannedPrefix());
@@ -110,34 +86,10 @@ public class TreeRegex extends SerializedTree {
             } else if (token == TreeRegex.LT) {
                 pushString(current, sb, isRegex);
                 stack.push(current);
-                current = new TreeRegex(true, false, false, false);
+                current = new TreeRegex(true, false);
             } else if (token == TreeRegex.RT) {
                 if (stack.isEmpty() || !current.isContext) {
                     throw new Error("Unbalanced " + TreeRegex.RTS + " after " + TreeRegex.treeRegexScanner.scannedPrefix());
-                }
-                pushString(current, sb, isRegex);
-                prev = current;
-                current = stack.pop();
-                current.addChild(prev);
-            } else if (token == TreeRegex.LL) {
-                pushString(current, sb, isRegex);
-                stack.push(current);
-                current = new TreeRegex(false, false, true, false);
-            } else if (token == TreeRegex.RL) {
-                if (stack.isEmpty() || !current.isStar) {
-                    throw new Error("Unbalanced " + TreeRegex.RLS + " after " + TreeRegex.treeRegexScanner.scannedPrefix());
-                }
-                pushString(current, sb, isRegex);
-                prev = current;
-                current = stack.pop();
-                current.addChild(prev);
-            } else if (token == TreeRegex.LA) {
-                pushString(current, sb, isRegex);
-                stack.push(current);
-                current = new TreeRegex(false, false, false, true);
-            } else if (token == TreeRegex.RA) {
-                if (stack.isEmpty() || !current.isAlternation) {
-                    throw new Error("Unbalanced " + TreeRegex.RAS + " after " + TreeRegex.treeRegexScanner.scannedPrefix());
                 }
                 pushString(current, sb, isRegex);
                 prev = current;

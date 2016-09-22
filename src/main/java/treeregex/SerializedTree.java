@@ -76,7 +76,7 @@ public class SerializedTree {
 
     ;
 
-    public String toSourceStringClipped() {
+    private String toSourceStringClipped() {
         StringBuilder ret = new StringBuilder();
         for (int i = 0; i < this.children.length; i++) {
             Object child = this.children[i];
@@ -92,14 +92,12 @@ public class SerializedTree {
 
     ;
 
-    public void addChild(Object child) {
+    void addChild(Object child) {
         this.tmpChildren.push(child);
     }
 
-    ;
 
-
-    public boolean matchContext(TreeRegex patternStar, ObjectArrayList ret, SerializedTree top, SerializedTree parent, int index) {
+    private boolean matchContext(TreeRegex patternStar, ObjectArrayList ret, SerializedTree top, SerializedTree parent, int index) {
         int oldlen = ret.size();
         ret.push(new SerializedTreeWithHole(top, parent, index));
         int ret2 = this.matchExactOrPartial(patternStar, 0, true, ret);
@@ -120,27 +118,7 @@ public class SerializedTree {
         return false;
     }
 
-    public int matchStar(TreeRegex pattern, ObjectArrayList ret, int k) {
-        int ktmp = k;
-        do {
-            k = ktmp;
-            ktmp = this.matchList(pattern, ret, k);
-        } while (ktmp != -1);
-        return k;
-    }
-
-    public int matchAlternation(TreeRegex pattern, ObjectArrayList ret, int k) {
-        for (int i = 0; i < pattern.children.length; i++) {
-            Object o = pattern.children[i];
-            int ktmp = this.matchList((TreeRegex) o, ret, k); // @todo type cast could fail
-            if (ktmp != -1) {
-                return ktmp;
-            }
-        }
-        return -1;
-    }
-
-    public int matchList(TreeRegex pattern, ObjectArrayList ret, int k) {
+    private int matchList(TreeRegex pattern, ObjectArrayList ret, int k) {
         int oldlen = ret.size();
 
         for (int i = 0; i < pattern.children.length && k != -1; i++) {
@@ -166,11 +144,7 @@ public class SerializedTree {
                 }
             } else if (o instanceof TreeRegex) {
                 TreeRegex t = (TreeRegex) o;
-                if (t.isStar) {
-                    k = this.matchStar(t, ret, k);
-                } else if (t.isAlternation) {
-                    k = this.matchAlternation(t, ret, k);
-                } else if (this.children[k] instanceof SerializedTree) {
+                if (this.children[k] instanceof SerializedTree) {
                     SerializedTree ast = (SerializedTree) this.children[k];
                     if (t.isAt) {
                         ret.push(ast);
